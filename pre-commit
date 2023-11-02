@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Redirect output to /dev/null to suppress unnecessary messages
+exec 1>/dev/null
+
+# Get the list of files to be committed
+files=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Regular expression pattern to match method names
+pattern="^.*\bUniTask\b.*$"
+
+# Loop through each file
+for file in $files; do
+    # Check if the file is a C# file
+    if [[ $file == *.cs ]]; then
+        # Check if the file contains any method that returns UniTask
+        if grep -q -E "$pattern" "$file"; then
+            # Check if the method names have the "Async" postfix
+            if ! grep -q -E "Async\b" "$file"; then
+                echo "Error: Method names that return UniTask must have the 'Async' postfix. File: $file"
+                exit 1
+            fi
+        fi
+    fi
+done
+
+# Exit with a success status
+exit 0
